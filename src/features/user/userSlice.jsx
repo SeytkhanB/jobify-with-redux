@@ -4,34 +4,38 @@ import customFetch from "../../utils/axios";
 import {
   addUserToLocalStorage,
   getUserFromLocalStorage,
+  removeUserFromLocalStorage,
 } from "../../utils/localStorage";
+import {
+  registerUserThunk,
+  loginUserThunk,
+  updateUserThunk,
+} from "./userThunk";
 
 const initialState = {
   isLoading: false,
+  isSidebarOpen: false,
   user: getUserFromLocalStorage(),
 };
 
 export const registerUser = createAsyncThunk(
   "user/registerUser",
   async (user, thunkAPI) => {
-    try {
-      const res = await customFetch.post("/auth/register", user);
-      return res.data;
-    } catch (error) {
-      return thunkAPI.rejectWithValue(error.response.data.msg);
-    }
+    return registerUserThunk("/auth/register", user, thunkAPI);
   }
 );
 
 export const loginUser = createAsyncThunk(
   "user/loginUser",
   async (user, thunkAPI) => {
-    try {
-      const res = await customFetch.post("/auth/login", user);
-      return res.data;
-    } catch (error) {
-      return thunkAPI.rejectWithValue(error.response.data.msg);
-    }
+    return loginUserThunk("auth/login", user, thunkAPI);
+  }
+);
+
+export const updateUser = createAsyncThunk(
+  "user/updateUser",
+  async (user, thunkAPI) => {
+    return updateUserThunk("/auth/updateUser", user, thunkAPI);
   }
 );
 
@@ -39,7 +43,20 @@ const userSlice = createSlice({
   name: "user",
   initialState,
 
+  reducers: {
+    logoutUser: (state) => {
+      state.user = null;
+      state.isSidebarOpen = false;
+      removeUserFromLocalStorage();
+      toast.success("Logged out successfully!");
+    },
+    toggleSidebar: (state) => {
+      state.isSidebarOpen = !state.isSidebarOpen;
+    },
+  },
+
   extraReducers: {
+    // REGISTER USER
     [registerUser.pending]: (state) => {
       state.isLoading = true;
     },
@@ -55,6 +72,7 @@ const userSlice = createSlice({
       toast.error(payload);
     },
 
+    // LOGIN USER
     [loginUser.pending]: (state) => {
       state.isLoading = true;
     },
@@ -69,7 +87,24 @@ const userSlice = createSlice({
       state.isLoading = false;
       toast.error(payload);
     },
+
+    // UPDATE USER
+    [updateUser.pending]: (state) => {
+      state.isLoading = true;
+    },
+    [updateUser.fulfilled]: (state, { payload }) => {
+      const { user } = payload;
+      state.isLoading = false;
+      state.user = user;
+      addUserToLocalStorage(user);
+      toast.success("User updated");
+    },
+    [updateUser.rejected]: (state, { payload }) => {
+      state.isLoading = false;
+      toast.error(payload);
+    },
   },
 });
 
 export default userSlice.reducer;
+export const { logoutUser, toggleSidebar } = userSlice.actions;
