@@ -5,9 +5,11 @@ import { toast } from "react-toastify";
 import {
   clearValues,
   createJob,
+  editJob,
   handleChange,
 } from "../../features/job/jobSlice";
 import { useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 const AddJob = () => {
   const {
@@ -23,6 +25,7 @@ const AddJob = () => {
     editJobId,
   } = useSelector((store) => store.job);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { user } = useSelector((store) => store.user);
 
   useEffect(() => {
@@ -31,12 +34,36 @@ const AddJob = () => {
     }
   }, []);
 
+  const redirect = () => {
+    setTimeout(() => {
+      navigate("/all-jobs");
+    }, 1000);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!position || !company || !jobLocation) {
       toast.error("Please fill out all fields");
       return;
     }
+
+    if (isEditing) {
+      dispatch(
+        editJob({
+          jobId: editJobId,
+          job: {
+            position,
+            company,
+            jobLocation,
+            jobType,
+            status,
+          },
+        })
+      );
+      redirect();
+      return;
+    }
+
     dispatch(createJob({ position, company, jobLocation, jobType, status }));
   };
 
@@ -103,14 +130,24 @@ const AddJob = () => {
               clear
             </button>
 
-            <button
-              type="submit"
-              className="btn btn-block submit-btn"
-              disabled={isLoading}
-              onClick={handleSubmit}
-            >
-              submit
-            </button>
+            {isEditing ? (
+              <button
+                disabled={isLoading}
+                className="btn btn-block submit"
+                onClick={handleSubmit}
+              >
+                Modify
+              </button>
+            ) : (
+              <button
+                type="submit"
+                className="btn btn-block submit-btn"
+                disabled={isLoading}
+                onClick={handleSubmit}
+              >
+                submit
+              </button>
+            )}
           </div>
         </div>
       </form>
