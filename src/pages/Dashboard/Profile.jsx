@@ -24,6 +24,12 @@ const Profile = () => {
       toast.error("Please fill out all fields!");
       return;
     }
+
+    if (user?.email !== email) {
+      toast.error("You cannot change your email!");
+      return;
+    }
+
     dispatch(updateUser(userData));
   };
 

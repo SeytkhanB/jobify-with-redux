@@ -9,7 +9,7 @@ import {
   handleChange,
 } from "../../features/job/jobSlice";
 import { useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const AddJob = () => {
   const {
@@ -132,8 +132,9 @@ const AddJob = () => {
 
             {isEditing ? (
               <button
+                type="submit"
                 disabled={isLoading}
-                className="btn btn-block submit"
+                className="btn btn-block submit-btn"
                 onClick={handleSubmit}
               >
                 Modify

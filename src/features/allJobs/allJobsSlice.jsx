@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { toast } from "react-toastify";
-import customFetch from "../../utils/axios";
+import { getAllJobsThunk, showStatsThunk } from "./allJobsThunk";
 
 /* at some point we'll set back everything to the default and that's why we use two state */
 const initialFiltersState = {
@@ -22,31 +22,8 @@ const initialState = {
   ...initialFiltersState,
 };
 
-export const getAllJobs = createAsyncThunk(
-  "allJobs/getJobs",
-  async (_, thunkAPI) => {
-    let url = `/jobs`;
-    try {
-      const { data } = await customFetch.get(url);
-
-      return data;
-    } catch (error) {
-      return thunkAPI.rejectWithValue(error.response.data.msg);
-    }
-  }
-);
-
-export const showStats = createAsyncThunk(
-  "allJobs/showStats",
-  async (_, thunkAPI) => {
-    try {
-      const { data } = await customFetch.get("/jobs/stats");
-      return data;
-    } catch (err) {
-      return thunkAPI.rejectWithValue(err.response.data.msg);
-    }
-  }
-);
+export const getAllJobs = createAsyncThunk("allJobs/getJobs", getAllJobsThunk);
+export const showStats = createAsyncThunk("allJobs/showStats", showStatsThunk);
 
 const allJobsSlice = createSlice({
   name: "allJobs",
@@ -59,6 +36,17 @@ const allJobsSlice = createSlice({
     hideLoading: (state) => {
       state.isLoading = false;
     },
+    handleChange: (state, { payload: { name, value } }) => {
+      state.page = 1;
+      state[name] = value;
+    },
+    clearFilters: (state) => {
+      return { ...state, ...initialFiltersState };
+    },
+    changePage: (state, { payload }) => {
+      state.page = payload;
+    },
+    clearAllJobsState: () => initialState,
   },
 
   extraReducers: {
@@ -91,5 +79,12 @@ const allJobsSlice = createSlice({
   },
 });
 
-export const { showLoading, hideLoading } = allJobsSlice.actions;
+export const {
+  showLoading,
+  changePage,
+  hideLoading,
+  handleChange,
+  clearFilters,
+  clearAllJobsState,
+} = allJobsSlice.actions;
 export default allJobsSlice.reducer;
